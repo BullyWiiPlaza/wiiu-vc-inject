@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <conio.h>
-#include <windows.h>
+#include <winsock2.h>
 
 enum {
 	TYPE_UNK = 0,
@@ -170,6 +170,8 @@ void main(int argc, char *argv[])
 			search32[1] = htonl(0x24FFAE51); //Value
 			search32[2] = htonl(0x18000000); //Search Size
 		}
+		
+		printf("Search: %08x %08x %08x\n", search32[0], search32[1], search32[2]);
 		puts("Searching for Nintendo Logo Start");
 		sendall(s, (unsigned char*)search32, 12);
 		recvall(s, (unsigned char*)&addr, 4);
@@ -195,18 +197,18 @@ void main(int argc, char *argv[])
 	sendall(s, (unsigned char*)dst, 8);
 	size_t remain = fsize;
 	unsigned char *ptr = buf;
+	size_t sendsize = 0x5000;
 	while(remain > 0)
 	{
-		size_t sendsize = 0x400;
-		if(remain < 0x400) sendsize = remain;
+		if(remain < sendsize) sendsize = remain;
 		sendall(s,ptr,sendsize);
 		remain -= sendsize;
 		ptr += sendsize;
 	}
-	shutdown(s,SD_SEND); //sent all we have
-	recv(s, cmd, 1, 0); //lets see how tcpgecko reacted
+	shutdown(s, SD_SEND); //sent all we have
+	/*recv(s, cmd, 1, 0); //lets see how tcpgecko reacted
 	if(cmd[0] == 0xAA) printf("Transfer successful (%02x)!\n", cmd[0]);
-	else printf("Transfer error occured (%02x)!\n", cmd[0]);
+	else printf("Transfer error occured (%02x)!\n", cmd[0]);*/
 end:
 	closesocket(s);
 	WSACleanup();
